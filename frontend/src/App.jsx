@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-const currencies = ["USD","NPR","INR","EUR","JPY"];
+const currencies = ["USD","NPR","INR","EUR","JPY","GBP"];
 
 function App() {
   const [expenses, setExpenses] = useState ([]);
@@ -17,6 +17,7 @@ function App() {
   const [convertedExpenses, setConvertedExpenses] = useState({});
   const [conversionLoading, setConversionLoading] = useState(false);
 
+  // load expenses from backend
   useEffect(() => {
     fetch("http://localhost:5000/expenses")
     .then((response) => response.json())
@@ -28,6 +29,7 @@ function App() {
     });
   }, []);
 
+  // convert expenses whenever expenses or home currency changes
   useEffect(() => {
     async function convertExpenses() {
       if (expenses.length === 0) return;
@@ -39,7 +41,7 @@ function App() {
         const results = await Promise.all(
           expenses.map(async (expense) => {
             const response = await fetch(
-              "http://localhost:5000/convert?from=${expense.currency}&to=${homeCurrency}&amount=${expense.amount}"
+              `http://localhost:5000/convert?from=${expense.currency}&to=${homeCurrency}&amount=${expense.amount}`
             );
 
             const data = await response.json();
@@ -74,6 +76,7 @@ function App() {
     convertExpenses();
   }, [expenses, homeCurrency]);
 
+  // add expenses
   async function add(e) {
     e.preventDefault();
     if(!title || !amount){
@@ -113,10 +116,11 @@ function App() {
     }    
   }
 
+  // delete expenses
   async function remove(id) {
     try {
       const response = await fetch(
-        "http://localhost:5000/expenses/${id}",
+        `http://localhost:5000/expenses/${id}`,
         {
           method: "DELETE",
         }
@@ -131,11 +135,17 @@ function App() {
         expenses.filter((e) => e.id !== id)
       );
 
+      setConvertedExpenses((previous) => {
+        const updated = { ...previous };
+        delete updated[id];
+        return updated;
+      });
     } catch (error) {
         setError("Could not delete expense");
       }
   }
 
+  // calculate total
   const total = expenses.reduce(
     (sum, e) => sum + (convertedExpenses[e.id] || 0),
     0
@@ -147,25 +157,33 @@ function App() {
 
       <div className="home-currency">
         <span>Home Currency</span>
-        <select value={homeCurrency} onChange={(e) => setHomeCurrency(e.target.value)}>
-          {currencies.map((c) => (
-            <option key = {c} value={c}>{c}</option>
-          ))}
+
+        <select
+          value={homeCurrency} onChange={(e) => setHomeCurrency(e.target.value)}>
+            {currencies.map((c) => (
+              <option key = {c} value={c}>
+                {c}
+              </option>
+            ))}
         </select>
       </div>
 
-      {error && <div className="error">{error}</div>}
+      {error && <div className="error"> {error} </div>}
 
       <form className="form" onSubmit={add}>
         <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
 
         <input placeholder="Amount" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
 
-        <select value={currency} onChange={(e) => setCurrency(e.target.value)}>
-          {currencies.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
+        <select
+          value={currency} onChange={(e) => setCurrency(e.target.value)}>
+            {currencies.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
         </select>
+
         <button type="submit"> Add </button>
       </form>
 
@@ -179,16 +197,21 @@ function App() {
 
             <div className="expense-amount">
               <span className="original">{e.amount} {e.currency}</span>
-              <span className="converted"> {conversionLoading ? "Converting..." : "${convertedExpenses[e.id]?.toFixed(2) ?? "-"} ${homeCurrency}"} </span>
-              <button onClick={() => remove(e.id)}>Delete</button>
+              <span className="converted">
+                {conversionLoading ? "Converting..." : convertedExpenses[e.id] !== undefined ? `${convertedExpenses[e.id].toFixed(2)} ${homeCurrency}` : "-"}
+              </span>
+              
+              <button onClick={() => remove(e.id)}> Delete </button>
             </div>
           </div>
         ))}
       </div>
 
       <div className="total">
-        <span>Total in {homeCurrency}</span>
-        <span className="total-amount"> {total.toFixed(2)} {homeCurrency} </span>
+        <span> Total in {homeCurrency} </span>
+        <span className="total-amount">
+          {total.toFixed(2)} {homeCurrency}
+        </span>
       </div>
     </div>
   );
