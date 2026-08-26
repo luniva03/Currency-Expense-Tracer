@@ -1,8 +1,32 @@
-# React + Vite
+# Currency & Expense Tracker - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend of the Currency & Expense Tracker is built using React and Vite. It provides the user interface for adding expenses, viewing expense records, selecting a home currency, and displaying converted amounts and the total expense.
 
-Currently, two official plugins are available:
+## Technologies Used
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React
+- Vite
+- JavaScript
+- CSS
+
+## Setup and Run
+
+Install the dependencies:
+npm install
+
+Start the development server:
+npm start
+
+The frontend will run at:
+http://localhost:5173
+
+We must make sure the backend is running on port 5000 for the expense and currency conversion features to work.
+
+## Backend
+
+The frontend communicates with the Express backend through API requests for:
+
+- Loading expenses
+- Adding expenses
+- Deleting expenses
+- Currency conversion
